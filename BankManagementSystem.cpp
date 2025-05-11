@@ -1,14 +1,11 @@
-
 #include <iostream>
 #include <string>
 using namespace std;
 
-// ================== CONSTANTS ================== //
 const int MAX_CUSTOMERS = 100;
 const int MAX_ADMINS = 5;
 const int MAX_TRANSACTIONS = 100;
 
-// ================== ACCOUNT CLASS ================== //
 class Account {
 private:
     int accountID;
@@ -17,14 +14,9 @@ private:
     double balance;
 
 public:
-    Account() {
-        accountID = -1;
-        holderName = "";
-        accountType = "";
-        balance = 0.0;
-    }
+    Account() : accountID(-1), balance(0.0) {}
 
-    void create(int id, string name, string type, double initialBalance) {
+    void create(int id, const string& name, const string& type, double initialBalance) {
         accountID = id;
         holderName = name;
         accountType = type;
@@ -36,11 +28,9 @@ public:
             cout << "No account exists." << endl;
             return;
         }
-        cout << "\n--- Account Details ---" << endl;
-        cout << "Account ID: " << accountID << endl;
-        cout << "Holder Name: " << holderName << endl;
-        cout << "Account Type: " << accountType << endl;
-        cout << "Balance: $" << balance << endl;
+        cout << "\n--- Account Details ---\n";
+        cout << "Account ID: " << accountID << "\nHolder Name: " << holderName
+             << "\nAccount Type: " << accountType << "\nBalance: $" << balance << endl;
     }
 
     void deposit(double amount) {
@@ -68,20 +58,19 @@ public:
 
     void deleteAccount() {
         accountID = -1;
-        holderName = "";
-        accountType = "";
+        holderName.clear();
+        accountType.clear();
         balance = 0.0;
     }
 };
 
-// ================== TRANSACTION CLASS ================== //
 class Transaction {
 public:
     int fromID, toID;
     double amount;
     string type;
 
-    void log(int from, int to, double amt, string t) {
+    void log(int from, int to, double amt, const string& t) {
         fromID = from;
         toID = to;
         amount = amt;
@@ -93,37 +82,33 @@ public:
     }
 };
 
-// ================== USER BASE CLASS ================== //
 class User {
 protected:
-    string username;
-    string password;
+    string username, password;
 
 public:
     User() {}
-    User(string u, string p) : username(u), password(p) {}
-    bool login(string u, string p) { return username == u && password == p; }
+    User(const string& u, const string& p) : username(u), password(p) {}
+    bool login(const string& u, const string& p) { return username == u && password == p; }
     virtual void showMenu() = 0;
 };
 
-// Forward declaration
 class Customer;
 
-// ================== ADMIN CLASS ================== //
 class Admin : public User {
 public:
-    Admin(string u, string p) : User(u, p) {}
+    Admin() {}
+    Admin(const string& u, const string& p) : User(u, p) {}
     void showMenu() override;
 };
 
-// ================== CUSTOMER CLASS ================== //
 class Customer : public User {
 private:
     int accountID;
 
 public:
     Customer() {}
-    Customer(string u, string p, int accID) : User(u, p), accountID(accID) {}
+    Customer(const string& u, const string& p, int accID) : User(u, p), accountID(accID) {}
     int getAccountID() { return accountID; }
     void showMenu() override;
     void viewMyAccount();
@@ -131,17 +116,16 @@ public:
     void withdrawFromMyAccount();
 };
 
-// ================== GLOBAL VARIABLES ================== //
 Account accounts[MAX_CUSTOMERS];
 Transaction transactions[MAX_TRANSACTIONS];
-Admin admins[MAX_ADMINS] = { Admin("admin", "1234") };
+Admin admins[MAX_ADMINS];
 Customer customers[MAX_CUSTOMERS] = { Customer("user1", "pass1", 101) };
 
 int accountCount = 0;
 int customerCount = 1;
 int transactionCount = 0;
+int adminCount = 1;
 
-// ================== UTILITY FUNCTIONS ================== //
 int findAccountIndex(int id) {
     for (int i = 0; i < accountCount; i++) {
         if (accounts[i].getID() == id) return i;
@@ -149,7 +133,7 @@ int findAccountIndex(int id) {
     return -1;
 }
 
-void logTransaction(int fromID, int toID, double amount, string type) {
+void logTransaction(int fromID, int toID, double amount, const string& type) {
     if (transactionCount < MAX_TRANSACTIONS) {
         transactions[transactionCount++].log(fromID, toID, amount, type);
     }
@@ -172,14 +156,15 @@ void createAccount() {
     string name, type;
     double balance;
 
-    cout << "\nEnter Account ID: "; cin >> id;
+    cout << "\nEnter Account ID: ";
+    cin >> id;
     if (findAccountIndex(id) != -1) {
         cout << "Account with this ID already exists!" << endl;
         return;
     }
 
-    cout << "Enter Holder Name: ";
     cin.ignore();
+    cout << "Enter Holder Name: ";
     getline(cin, name);
     cout << "Enter Account Type: ";
     getline(cin, type);
@@ -207,57 +192,73 @@ void deleteAccount() {
     if (index != -1) {
         accounts[index].deleteAccount();
         cout << "Account deleted successfully." << endl;
-    } else cout << "Account not found!" << endl;
+    } else {
+        cout << "Account not found!" << endl;
+    }
 }
 
 void depositToAccount() {
     int id;
     double amount;
-    cout << "\nEnter Account ID: "; cin >> id;
+    cout << "\nEnter Account ID: ";
+    cin >> id;
     int index = findAccountIndex(id);
     if (index != -1) {
-        cout << "Enter amount to deposit: "; cin >> amount;
+        cout << "Enter amount to deposit: ";
+        cin >> amount;
         accounts[index].deposit(amount);
         logTransaction(id, id, amount, "Deposit");
-    } else cout << "Account not found!" << endl;
+    } else {
+        cout << "Account not found!" << endl;
+    }
 }
 
 void withdrawFromAccount() {
     int id;
     double amount;
-    cout << "\nEnter Account ID: "; cin >> id;
+    cout << "\nEnter Account ID: ";
+    cin >> id;
     int index = findAccountIndex(id);
     if (index != -1) {
-        cout << "Enter amount to withdraw: "; cin >> amount;
+        cout << "Enter amount to withdraw: ";
+        cin >> amount;
         if (accounts[index].withdraw(amount)) {
             logTransaction(id, id, amount, "Withdraw");
         }
-    } else cout << "Account not found!" << endl;
+    } else {
+        cout << "Account not found!" << endl;
+    }
 }
 
 void transferAmount() {
     int fromID, toID;
     double amount;
-    cout << "\nEnter Sender Account ID: "; cin >> fromID;
-    cout << "Enter Receiver Account ID: "; cin >> toID;
-    if (fromID == toID) { cout << "Cannot transfer to same account." << endl; return; }
+    cout << "\nEnter Sender Account ID: ";
+    cin >> fromID;
+    cout << "Enter Receiver Account ID: ";
+    cin >> toID;
+    if (fromID == toID) {
+        cout << "Cannot transfer to same account." << endl;
+        return;
+    }
     int fromIndex = findAccountIndex(fromID);
     int toIndex = findAccountIndex(toID);
     if (fromIndex != -1 && toIndex != -1) {
-        cout << "Enter amount to transfer: "; cin >> amount;
+        cout << "Enter amount to transfer: ";
+        cin >> amount;
         if (accounts[fromIndex].withdraw(amount)) {
             accounts[toIndex].deposit(amount);
             logTransaction(fromID, toID, amount, "Transfer");
         }
-    } else cout << "One or both accounts not found!" << endl;
+    } else {
+        cout << "One or both accounts not found!" << endl;
+    }
 }
 
-// ================== ADMIN MENU ================== //
 void Admin::showMenu() {
     int choice;
     do {
-        cout << "\n--- Admin Menu ---" << endl;
-        cout << "1. Create Account\n2. View Account\n3. Delete Account\n4. Show Transactions\n0. Logout\nChoice: ";
+        cout << "\n--- Admin Menu ---\n1. Create Account\n2. View Account\n3. Delete Account\n4. Show Transactions\n0. Logout\nChoice: ";
         cin >> choice;
         switch (choice) {
             case 1: createAccount(); break;
@@ -270,7 +271,6 @@ void Admin::showMenu() {
     } while (choice != 0);
 }
 
-// ================== CUSTOMER METHODS ================== //
 void Customer::viewMyAccount() {
     int index = findAccountIndex(accountID);
     if (index != -1) accounts[index].display();
@@ -281,7 +281,8 @@ void Customer::depositToMyAccount() {
     int index = findAccountIndex(accountID);
     if (index != -1) {
         double amount;
-        cout << "Enter deposit amount: "; cin >> amount;
+        cout << "Enter deposit amount: ";
+        cin >> amount;
         accounts[index].deposit(amount);
         logTransaction(accountID, accountID, amount, "Deposit");
     }
@@ -291,7 +292,8 @@ void Customer::withdrawFromMyAccount() {
     int index = findAccountIndex(accountID);
     if (index != -1) {
         double amount;
-        cout << "Enter withdrawal amount: "; cin >> amount;
+        cout << "Enter withdrawal amount: ";
+        cin >> amount;
         if (accounts[index].withdraw(amount)) {
             logTransaction(accountID, accountID, amount, "Withdraw");
         }
@@ -301,8 +303,7 @@ void Customer::withdrawFromMyAccount() {
 void Customer::showMenu() {
     int choice;
     do {
-        cout << "\n--- Customer Menu ---" << endl;
-        cout << "1. View My Account\n2. Deposit\n3. Withdraw\n0. Logout\nChoice: ";
+        cout << "\n--- Customer Menu ---\n1. View My Account\n2. Deposit\n3. Withdraw\n0. Logout\nChoice: ";
         cin >> choice;
         switch (choice) {
             case 1: viewMyAccount(); break;
@@ -314,13 +315,14 @@ void Customer::showMenu() {
     } while (choice != 0);
 }
 
-// ================== LOGIN SYSTEM ================== //
 void loginSystem() {
     string u, p;
-    cout << "\nUsername: "; cin >> u;
-    cout << "Password: "; cin >> p;
+    cout << "\nUsername: ";
+    cin >> u;
+    cout << "Password: ";
+    cin >> p;
 
-    for (int i = 0; i < MAX_ADMINS; i++) {
+    for (int i = 0; i < adminCount; i++) {
         if (admins[i].login(u, p)) {
             cout << "Admin logged in.\n";
             admins[i].showMenu();
@@ -337,12 +339,11 @@ void loginSystem() {
     cout << "Invalid credentials.\n";
 }
 
-// ================== MAIN ================== //
 int main() {
+    admins[0] = Admin("admin", "1234");
     int choice;
     do {
-        cout << "\n===== BANK SYSTEM =====" << endl;
-        cout << "1. Login\n0. Exit\nChoice: ";
+        cout << "\n===== BANK SYSTEM =====\n1. Login\n0. Exit\nChoice: ";
         cin >> choice;
         switch (choice) {
             case 1: loginSystem(); break;
